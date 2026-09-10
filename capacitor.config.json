@@ -1,0 +1,11 @@
+{
+  "appId": "com.giadinh.sothuchi",
+  "appName": "So Thu Chi",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "always"
+  }
+}
