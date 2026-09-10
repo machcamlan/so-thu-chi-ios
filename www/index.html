@@ -128,6 +128,44 @@
   .stat-box .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;}
 
   .foot-note{text-align:center;color:#a89a78;font-size:11.5px;margin-top:14px;}
+
+  .reminder-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px;}
+  .reminder-pill{
+    background:#332e26;color:#e8dcc3;border:1px solid #4a4234;border-radius:20px;
+    padding:7px 14px;font-size:12.5px;font-weight:600;
+  }
+  .reminder-pill.chay{background:var(--get-bg);color:var(--get);border-color:#bcdcc0;}
+  .reminder-pill.bday{background:#fbe6ee;color:#a9436f;border-color:#f3c6d8;}
+
+  .alert-banner{
+    background:var(--owe-bg);color:var(--owe);border:1px solid #eec6c1;
+    border-radius:9px;padding:11px 14px;font-size:13.5px;font-weight:700;
+    margin-bottom:10px;
+  }
+
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px;}
+  .cal-dow{text-align:center;font-size:11px;color:var(--ink-soft);font-weight:700;padding-bottom:4px;}
+  .cal-cell{
+    aspect-ratio:1/1;border-radius:8px;background:#fff;border:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    position:relative;font-size:13px;
+  }
+  .cal-cell.empty{background:transparent;border:none;}
+  .cal-cell .solar-d{font-weight:700;}
+  .cal-cell .lunar-d{font-size:9.5px;color:var(--ink-soft);}
+  .cal-cell.chay{background:var(--get-bg);}
+  .cal-cell.chay .lunar-d{color:var(--get);font-weight:700;}
+  .cal-cell.today{border:2px solid var(--brand);}
+  .cal-cell .bday-dot{position:absolute;top:3px;right:5px;font-size:9px;}
+  .cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:11.5px;color:var(--ink-soft);}
+  .cal-legend span{display:inline-flex;align-items:center;gap:5px;}
+  .legend-dot{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+  .bday-item{
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+    padding:9px 4px;border-bottom:1px dotted var(--line);font-size:13.5px;
+  }
+  .bday-item .meta{color:var(--ink-soft);font-size:11.5px;}
 </style>
 </head>
 <body>
@@ -137,9 +175,12 @@
     <p>Quản lý thu chi hằng tháng và theo dõi mục tiêu tiết kiệm</p>
   </div>
 
+  <div class="reminder-bar" id="reminderBar"></div>
+
   <div class="tabs">
     <button class="tab-btn active" data-tab="thuchi" type="button">📒 Thu Chi</button>
     <button class="tab-btn" data-tab="tietkiem" type="button">🐷 Tiết Kiệm</button>
+    <button class="tab-btn" data-tab="lich" type="button">🗓️ Lịch &amp; Sinh Nhật</button>
   </div>
 
   <!-- ===================== TAB THU CHI ===================== -->
@@ -151,6 +192,8 @@
         <div class="label" id="monthLabel">Tháng 9/2026</div>
         <button id="nextMonth" type="button">&#8594;</button>
       </div>
+
+      <div class="alert-banner hidden" id="spendAlert"></div>
 
       <div class="grid2">
         <table class="mini">
@@ -194,8 +237,8 @@
           <select id="txCategory"></select>
         </div>
         <div>
-          <label>Số tiền (đ)</label>
-          <input type="text" inputmode="numeric" id="txAmount" placeholder="0">
+          <label>Số tiền (nghìn đồng)</label>
+          <input type="text" inputmode="numeric" id="txAmount" placeholder="vd: 100 = 100.000đ">
         </div>
       </div>
       <div class="form-row">
@@ -228,8 +271,8 @@
       <h2>MỤC TIÊU TIẾT KIỆM</h2>
       <div class="form-row">
         <div>
-          <label>Mục tiêu (đ)</label>
-          <input type="text" inputmode="numeric" id="goalTarget">
+          <label>Mục tiêu (nghìn đồng)</label>
+          <input type="text" inputmode="numeric" id="goalTarget" placeholder="vd: 10.000 = 10.000.000đ">
         </div>
         <div>
           <label>Ngày bắt đầu</label>
@@ -267,6 +310,55 @@
     </div>
   </div>
 
+  <!-- ===================== TAB LỊCH & SINH NHẬT ===================== -->
+  <div id="tab-lich" class="hidden">
+
+    <div class="card">
+      <h2>LỊCH ÂM &amp; NGÀY CHAY</h2>
+      <div class="month-nav">
+        <button id="prevCalMonth" type="button">&#8592;</button>
+        <div class="label" id="calMonthLabel">Tháng 9/2026</div>
+        <button id="nextCalMonth" type="button">&#8594;</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend">
+        <span><i class="legend-dot" style="background:var(--get-bg);border:1px solid var(--get);"></i> Ngày ăn chay</span>
+        <span><i class="legend-dot" style="background:#fff;border:2px solid var(--brand);"></i> Hôm nay</span>
+        <span>🎂 Sinh nhật người thân</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>+ THÊM NGƯỜI THÂN</h2>
+      <div class="form-row">
+        <div style="flex:2 1 160px;">
+          <label>Tên</label>
+          <input type="text" id="bdayName" placeholder="Vd: Mẹ, Bố, Anh Hai...">
+        </div>
+        <div>
+          <label>Loại lịch</label>
+          <div class="seg" id="bdayTypeSeg">
+            <button type="button" class="active thu" data-bdaytype="solar">Dương lịch</button>
+            <button type="button" class="chi" data-bdaytype="lunar">Âm lịch</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-row" id="bdaySolarRow">
+        <div><label>Ngày sinh (dương lịch)</label><input type="date" id="bdaySolarDate"></div>
+      </div>
+      <div class="form-row hidden" id="bdayLunarRow">
+        <div><label>Ngày (âm lịch)</label><input type="number" id="bdayLunarDay" min="1" max="30" placeholder="1-30"></div>
+        <div><label>Tháng (âm lịch)</label><input type="number" id="bdayLunarMonth" min="1" max="12" placeholder="1-12"></div>
+      </div>
+      <button class="btn" id="addBdayBtn" type="button">+ Thêm</button>
+    </div>
+
+    <div class="card">
+      <h2>NGƯỜI THÂN &amp; SINH NHẬT SẮP TỚI</h2>
+      <div class="tx-list" id="bdayList"></div>
+    </div>
+  </div>
+
   <div class="card">
     <h2>DỮ LIỆU</h2>
     <div class="toolbar">
@@ -276,6 +368,7 @@
         <input type="file" id="importFile" accept="application/json" style="display:none;">
       </label>
       <button class="btn secondary" id="resetBtn" type="button">↺ Về dữ liệu ví dụ ban đầu</button>
+      <button class="btn secondary" id="newUserBtn" type="button" style="color:var(--owe);">🆕 Xoá dữ liệu cũ (Người dùng mới)</button>
     </div>
     <p class="foot-note">Dữ liệu được lưu tự động trên chính máy/trình duyệt này (localStorage). Dùng "Xuất dữ liệu" để sao lưu hoặc chuyển sang thiết bị khác.</p>
   </div>
@@ -321,7 +414,9 @@ function loadState(){
   return {
     transactions: JSON.parse(JSON.stringify(DEFAULT_TRANSACTIONS)),
     savings: JSON.parse(JSON.stringify(DEFAULT_SAVINGS)),
-    nextTxId: DEFAULT_TRANSACTIONS.length + 1
+    nextTxId: DEFAULT_TRANSACTIONS.length + 1,
+    birthdays: [],
+    nextBdayId: 1
   };
 }
 
@@ -371,8 +466,138 @@ document.querySelectorAll('.tab-btn').forEach(function(btn){
     var tab = btn.getAttribute('data-tab');
     document.getElementById('tab-thuchi').classList.toggle('hidden', tab!=='thuchi');
     document.getElementById('tab-tietkiem').classList.toggle('hidden', tab!=='tietkiem');
+    document.getElementById('tab-lich').classList.toggle('hidden', tab!=='lich');
+    if (tab==='lich') renderLichTab();
   });
 });
+
+// ---------------- LỊCH ÂM (thuật toán Hồ Ngọc Đức) ----------------
+var TZ = 7;
+function INT(d){ return Math.floor(d); }
+function jdFromDate(dd,mm,yy){
+  var a=INT((14-mm)/12), y=yy+4800-a, m=mm+12*a-3;
+  var jd = dd+INT((153*m+2)/5)+365*y+INT(y/4)-INT(y/100)+INT(y/400)-32045;
+  if (jd<2299161) jd = dd+INT((153*m+2)/5)+365*y+INT(y/4)-32083;
+  return jd;
+}
+function jdToDate(jd){
+  var a,b,c,d,e,m,day,month,year;
+  if (jd>2299160){ a=jd+32044; b=INT((4*a+3)/146097); c=a-INT((b*146097)/4); }
+  else { b=0; c=jd+32082; }
+  d=INT((4*c+3)/1461); e=c-INT((1461*d)/4); m=INT((5*e+2)/153);
+  day=e-INT((153*m+2)/5)+1; month=m+3-12*INT(m/10); year=b*100+d-4800+INT(m/10);
+  return [day,month,year];
+}
+function NewMoon(k){
+  var T=k/1236.85, T2=T*T, T3=T2*T, dr=Math.PI/180;
+  var Jd1=2415020.75933+29.53058868*k+0.0001178*T2-0.000000155*T3;
+  Jd1 += 0.00033*Math.sin((166.56+132.87*T-0.009173*T2)*dr);
+  var M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3;
+  var Mpr=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3;
+  var F=21.2964+390.67050646*k-0.0016528*T2-0.00000239*T3;
+  var C1=(0.1734-0.000393*T)*Math.sin(M*dr)+0.0021*Math.sin(2*dr*M);
+  C1 -= 0.4068*Math.sin(Mpr*dr); C1 += 0.0161*Math.sin(dr*2*Mpr); C1 -= 0.0004*Math.sin(dr*3*Mpr);
+  C1 += 0.0104*Math.sin(dr*2*F); C1 -= 0.0051*Math.sin(dr*(M+Mpr));
+  C1 -= 0.0074*Math.sin(dr*(M-Mpr)); C1 += 0.0004*Math.sin(dr*(2*F+M));
+  C1 -= 0.0004*Math.sin(dr*(2*F-M)); C1 -= 0.0006*Math.sin(dr*(2*F+Mpr));
+  C1 += 0.0010*Math.sin(dr*(2*F-Mpr)); C1 += 0.0005*Math.sin(dr*(2*Mpr+M));
+  var deltat = (T< -11) ? (0.001+0.000839*T+0.0002261*T2-0.00000845*T3-0.000000081*T*T3) : (-0.000278+0.000265*T+0.000262*T2);
+  return Jd1+C1-deltat;
+}
+function SunLongitude(jdn){
+  var T=(jdn-2451545.0)/36525, T2=T*T, dr=Math.PI/180;
+  var M=357.52910+35999.05030*T-0.0001559*T2-0.00000048*T*T2;
+  var L0=280.46645+36000.76983*T+0.0003032*T2;
+  var DL=(1.914600-0.004817*T-0.000014*T2)*Math.sin(dr*M);
+  DL += (0.019993-0.000101*T)*Math.sin(dr*2*M)+0.000290*Math.sin(dr*3*M);
+  var L=L0+DL; L=L*dr; L=L-Math.PI*2*(INT(L/(Math.PI*2)));
+  return L;
+}
+function getSunLongitude(dayNumber,tz){ return INT(SunLongitude(dayNumber-0.5-tz/24)/Math.PI*6); }
+function getNewMoonDay(k,tz){ return INT(NewMoon(k)+0.5+tz/24); }
+function getLunarMonth11(yy,tz){
+  var off=jdFromDate(31,12,yy)-2415021.076998695;
+  var k=INT(off/29.530588853);
+  var nm=getNewMoonDay(k,tz);
+  var sunLong=getSunLongitude(nm,tz);
+  if (sunLong>=9) nm=getNewMoonDay(k-1,tz);
+  return nm;
+}
+function getLeapMonthOffset(a11,tz){
+  var k=INT((a11-2415021.076998695)/29.530588853+0.5);
+  var last=0,i=1,arc=getSunLongitude(getNewMoonDay(k+i,tz),tz);
+  do{ last=arc; i++; arc=getSunLongitude(getNewMoonDay(k+i,tz),tz); }while(arc!=last && i<14);
+  return i-1;
+}
+function convertSolar2Lunar(dd,mm,yy,tz){
+  var dayNumber=jdFromDate(dd,mm,yy);
+  var k=INT((dayNumber-2415021.076998695)/29.530588853);
+  var monthStart=getNewMoonDay(k+1,tz);
+  if (monthStart>dayNumber) monthStart=getNewMoonDay(k,tz);
+  var a11=getLunarMonth11(yy,tz), b11=a11, lunarYear;
+  if (a11>=monthStart){ lunarYear=yy; a11=getLunarMonth11(yy-1,tz); }
+  else { lunarYear=yy+1; b11=getLunarMonth11(yy+1,tz); }
+  var lunarDay=dayNumber-monthStart+1;
+  var diff=INT((monthStart-a11)/29);
+  var lunarLeap=0, lunarMonth=diff+11;
+  if (b11-a11>365){
+    var leapMonthDiff=getLeapMonthOffset(a11,tz);
+    if (diff>=leapMonthDiff){ lunarMonth=diff+10; if (diff===leapMonthDiff) lunarLeap=1; }
+  }
+  if (lunarMonth>12) lunarMonth -= 12;
+  if (lunarMonth>=11 && diff<4) lunarYear -= 1;
+  return [lunarDay,lunarMonth,lunarYear,lunarLeap,monthStart];
+}
+function getLunarMonthDays(dd,mm,yy,tz){
+  var lunar = convertSolar2Lunar(dd,mm,yy,tz);
+  var monthStart = lunar[4];
+  var jd30 = monthStart+29;
+  var s30 = jdToDate(jd30);
+  var l30 = convertSolar2Lunar(s30[0],s30[1],s30[2],tz);
+  if (l30[1]===lunar[1] && l30[2]===lunar[2] && l30[3]===lunar[3] && l30[0]===30) return 30;
+  return 29;
+}
+function isChayDay(lunarDay,monthLen){
+  var d30=[1,8,14,15,18,23,24,28,29,30];
+  var d29=[1,8,14,15,18,23,24,27,28,29];
+  var set = monthLen===30 ? d30 : d29;
+  return set.indexOf(lunarDay)!==-1;
+}
+
+// ---------------- REMINDER BAR (hôm nay: âm lịch / chay / sinh nhật) ----------------
+function nextBirthdayOccurrence(b){
+  var today = new Date(); today.setHours(0,0,0,0);
+  if (b.type==='solar'){
+    for (var y=today.getFullYear(); y<=today.getFullYear()+1; y++){
+      var cand = new Date(y, b.month-1, b.day);
+      if (cand>=today) return { date:cand, daysLeft: Math.round((cand-today)/86400000) };
+    }
+  } else {
+    for (var i=0;i<400;i++){
+      var d = new Date(today.getTime()+i*86400000);
+      var lu = convertSolar2Lunar(d.getDate(), d.getMonth()+1, d.getFullYear(), TZ);
+      if (lu[1]===b.month && lu[0]===b.day) return { date:d, daysLeft:i };
+    }
+  }
+  return { date:null, daysLeft:99999 };
+}
+
+function renderReminderBar(){
+  var today = new Date();
+  var lunar = convertSolar2Lunar(today.getDate(), today.getMonth()+1, today.getFullYear(), TZ);
+  var monthLen = getLunarMonthDays(today.getDate(), today.getMonth()+1, today.getFullYear(), TZ);
+  var chay = isChayDay(lunar[0], monthLen);
+
+  var pills = [];
+  pills.push('<span class="reminder-pill">📅 Hôm nay '+pad2(today.getDate())+'/'+pad2(today.getMonth()+1)+' · Âm lịch '+lunar[0]+'/'+lunar[1]+(lunar[3]?' (nhuận)':'')+'</span>');
+  if (chay) pills.push('<span class="reminder-pill chay">🌿 Hôm nay là ngày ăn chay</span>');
+
+  var todayBdays = (state.birthdays||[]).filter(function(b){ return nextBirthdayOccurrence(b).daysLeft===0; });
+  if (todayBdays.length){
+    pills.push('<span class="reminder-pill bday">🎂 Hôm nay là sinh nhật: '+todayBdays.map(function(b){return escapeHtml(b.name);}).join(', ')+'</span>');
+  }
+  document.getElementById('reminderBar').innerHTML = pills.join('');
+}
 
 // ---------------- THU CHI TAB ----------------
 var viewYM = null; // 'YYYY-MM'
@@ -426,7 +651,7 @@ document.querySelectorAll('#typeSeg button').forEach(function(btn){
 document.getElementById('addTxBtn').addEventListener('click', function(){
   var date = document.getElementById('txDate').value || todayStr();
   var category = document.getElementById('txCategory').value;
-  var amount = parseNum(document.getElementById('txAmount').value);
+  var amount = parseNum(document.getElementById('txAmount').value) * 1000;
   var note = document.getElementById('txNote').value.trim();
   if (!amount){ alert('Vui lòng nhập số tiền.'); return; }
   var id = (state.nextTxId || (state.transactions.length+1));
@@ -475,6 +700,15 @@ function renderThuChi(){
   var salaryEnd = totalThu - (chiSums.hui + chiSums.nangluong + chiSums.cho);
   document.getElementById('salaryEndMonth').textContent = fmt(salaryEnd);
   document.getElementById('monthBalance').textContent = fmt(totalThu - totalChi);
+
+  var SPEND_LIMIT = 15000000;
+  var alertBox = document.getElementById('spendAlert');
+  if (totalChi > SPEND_LIMIT){
+    alertBox.classList.remove('hidden');
+    alertBox.textContent = '⚠️ Cảnh báo: Chi tiêu tháng này đã vượt mốc '+fmt(SPEND_LIMIT)+' (hiện tại: '+fmt(totalChi)+')';
+  } else {
+    alertBox.classList.add('hidden');
+  }
 
   var list = document.getElementById('txList');
   list.innerHTML = '';
@@ -542,7 +776,7 @@ function renderDenomGrid(){
 }
 
 document.getElementById('saveGoalBtn').addEventListener('click', function(){
-  state.savings.target = parseNum(document.getElementById('goalTarget').value);
+  state.savings.target = parseNum(document.getElementById('goalTarget').value) * 1000;
   state.savings.startDate = document.getElementById('goalStart').value || state.savings.startDate;
   state.savings.months = Number(document.getElementById('goalMonths').value) || state.savings.months;
   saveState();
@@ -585,7 +819,7 @@ function entryTotal(entry){
 
 function renderTietKiem(){
   var g = state.savings;
-  document.getElementById('goalTarget').value = g.target.toLocaleString('vi-VN');
+  document.getElementById('goalTarget').value = Math.round(g.target/1000).toLocaleString('vi-VN');
   document.getElementById('goalStart').value = g.startDate;
   document.getElementById('goalMonths').value = g.months;
 
@@ -639,6 +873,140 @@ function renderTietKiem(){
   }
 }
 
+// ---------------- TAB LỊCH & SINH NHẬT ----------------
+var calYM = todayStr().slice(0,7);
+var DOW_LABELS = ['CN','T2','T3','T4','T5','T6','T7'];
+var bdayTypeSel = 'solar';
+
+document.getElementById('prevCalMonth').addEventListener('click', function(){
+  calYM = addMonths(calYM+'-01', -1);
+  renderLichTab();
+});
+document.getElementById('nextCalMonth').addEventListener('click', function(){
+  calYM = addMonths(calYM+'-01', 1);
+  renderLichTab();
+});
+
+document.querySelectorAll('#bdayTypeSeg button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#bdayTypeSeg button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    bdayTypeSel = btn.getAttribute('data-bdaytype');
+    document.getElementById('bdaySolarRow').classList.toggle('hidden', bdayTypeSel!=='solar');
+    document.getElementById('bdayLunarRow').classList.toggle('hidden', bdayTypeSel!=='lunar');
+  });
+});
+
+document.getElementById('addBdayBtn').addEventListener('click', function(){
+  var name = document.getElementById('bdayName').value.trim();
+  if (!name){ alert('Vui lòng nhập tên.'); return; }
+  var b = { id: (state.nextBdayId||1), name:name, type:bdayTypeSel };
+  if (bdayTypeSel==='solar'){
+    var sd = document.getElementById('bdaySolarDate').value;
+    if (!sd){ alert('Vui lòng chọn ngày sinh.'); return; }
+    var parts = sd.split('-').map(Number);
+    b.month = parts[1]; b.day = parts[2];
+  } else {
+    var ld = parseInt(document.getElementById('bdayLunarDay').value,10);
+    var lm = parseInt(document.getElementById('bdayLunarMonth').value,10);
+    if (!ld || !lm){ alert('Vui lòng nhập đủ ngày và tháng âm lịch.'); return; }
+    b.day = ld; b.month = lm;
+  }
+  state.nextBdayId = b.id + 1;
+  state.birthdays = state.birthdays || [];
+  state.birthdays.push(b);
+  saveState();
+  document.getElementById('bdayName').value = '';
+  document.getElementById('bdaySolarDate').value = '';
+  document.getElementById('bdayLunarDay').value = '';
+  document.getElementById('bdayLunarMonth').value = '';
+  renderLichTab();
+  renderReminderBar();
+});
+
+function removeBday(id){
+  state.birthdays = (state.birthdays||[]).filter(function(b){ return b.id!==id; });
+  saveState();
+  renderLichTab();
+  renderReminderBar();
+}
+
+function renderCalGrid(){
+  var parts = calYM.split('-').map(Number);
+  var year=parts[0], month=parts[1];
+  document.getElementById('calMonthLabel').textContent = MONTH_NAMES_VN[month-1] + '/' + year;
+  var daysInMonth = new Date(year, month, 0).getDate();
+  var firstDow = new Date(year, month-1, 1).getDay();
+  var todayStr2 = todayStr();
+
+  var grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  DOW_LABELS.forEach(function(l){
+    var el = document.createElement('div');
+    el.className = 'cal-dow'; el.textContent = l;
+    grid.appendChild(el);
+  });
+  for (var i=0;i<firstDow;i++){
+    var empty = document.createElement('div');
+    empty.className = 'cal-cell empty';
+    grid.appendChild(empty);
+  }
+  var birthdays = state.birthdays || [];
+  for (var d=1; d<=daysInMonth; d++){
+    var lunar = convertSolar2Lunar(d, month, year, TZ);
+    var monthLen = getLunarMonthDays(d, month, year, TZ);
+    var chay = isChayDay(lunar[0], monthLen);
+    var cellDateStr = year+'-'+pad2(month)+'-'+pad2(d);
+    var hasBday = birthdays.some(function(b){
+      if (b.type==='solar') return b.month===month && b.day===d;
+      return b.month===lunar[1] && b.day===lunar[0];
+    });
+    var cell = document.createElement('div');
+    cell.className = 'cal-cell' + (chay?' chay':'') + (cellDateStr===todayStr2?' today':'');
+    cell.innerHTML = '<span class="solar-d">'+d+'</span><span class="lunar-d">'+lunar[0]+'/'+lunar[1]+'</span>' +
+      (hasBday ? '<span class="bday-dot">🎂</span>' : '');
+    grid.appendChild(cell);
+  }
+}
+
+function renderBdayList(){
+  var list = document.getElementById('bdayList');
+  list.innerHTML = '';
+  var birthdays = state.birthdays || [];
+  if (!birthdays.length){
+    list.innerHTML = '<div class="empty-note">Chưa có người thân nào được thêm.</div>';
+    return;
+  }
+  var withNext = birthdays.map(function(b){
+    var occ = nextBirthdayOccurrence(b);
+    return { b:b, daysLeft:occ.daysLeft, date:occ.date };
+  }).sort(function(x,y){ return x.daysLeft - y.daysLeft; });
+
+  withNext.forEach(function(item){
+    var b = item.b;
+    var dateLabel = item.date ? pad2(item.date.getDate())+'/'+pad2(item.date.getMonth()+1) : '?';
+    var typeLabel = b.type==='solar' ? 'Dương lịch '+pad2(b.day)+'/'+pad2(b.month) : 'Âm lịch '+b.day+'/'+b.month;
+    var daysText = item.daysLeft===0 ? 'Hôm nay!' : ('Còn '+item.daysLeft+' ngày · '+dateLabel);
+    var row = document.createElement('div');
+    row.className = 'bday-item';
+    row.innerHTML =
+      '<div><b>'+escapeHtml(b.name)+'</b><div class="meta">'+typeLabel+'</div></div>' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span style="font-weight:700;'+(item.daysLeft===0?'color:var(--brand);':'')+'">'+daysText+'</span>' +
+        '<button class="btn danger" data-rmbday="'+b.id+'" type="button">✕</button>' +
+      '</div>';
+    list.appendChild(row);
+  });
+  list.querySelectorAll('button[data-rmbday]').forEach(function(btn){
+    btn.addEventListener('click', function(){ removeBday(Number(btn.getAttribute('data-rmbday'))); });
+  });
+}
+
+function renderLichTab(){
+  renderCalGrid();
+  renderBdayList();
+}
+
 // ---------------- DATA CONTROLS ----------------
 document.getElementById('exportBtn').addEventListener('click', function(){
   var blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
@@ -661,10 +1029,16 @@ document.getElementById('importFile').addEventListener('change', function(e){
       if (!state.nextTxId){
         state.nextTxId = state.transactions.reduce(function(m,t){return Math.max(m,t.id||0);},0)+1;
       }
+      state.birthdays = state.birthdays || [];
+      if (!state.nextBdayId){
+        state.nextBdayId = state.birthdays.reduce(function(m,b){return Math.max(m,b.id||0);},0)+1;
+      }
       saveState();
       initViewMonth();
       renderThuChi();
       renderTietKiem();
+      renderLichTab();
+      renderReminderBar();
       alert('Đã nhập dữ liệu thành công.');
     }catch(err){
       alert('File không hợp lệ.');
@@ -679,8 +1053,26 @@ document.getElementById('resetBtn').addEventListener('click', function(){
   state = {
     transactions: JSON.parse(JSON.stringify(DEFAULT_TRANSACTIONS)),
     savings: JSON.parse(JSON.stringify(DEFAULT_SAVINGS)),
-    nextTxId: DEFAULT_TRANSACTIONS.length + 1
+    nextTxId: DEFAULT_TRANSACTIONS.length + 1,
+    birthdays: [],
+    nextBdayId: 1
   };
+  saveState();
+  initViewMonth();
+  renderThuChi();
+  renderTietKiem();
+  renderLichTab();
+  renderReminderBar();
+});
+
+document.getElementById('newUserBtn').addEventListener('click', function(){
+  if (!confirm('Xoá toàn bộ giao dịch thu chi và lịch sử tiết kiệm của TẤT CẢ các tháng trước đó để bắt đầu theo dõi từ đầu?\nMục tiêu tiết kiệm sẽ về mặc định, danh sách sinh nhật vẫn được giữ nguyên.')) return;
+  state.transactions = [];
+  state.nextTxId = 1;
+  state.savings.entries = [];
+  state.savings.target = 0;
+  state.savings.startDate = todayStr();
+  state.savings.months = 6;
   saveState();
   initViewMonth();
   renderThuChi();
@@ -689,13 +1081,17 @@ document.getElementById('resetBtn').addEventListener('click', function(){
 
 // ---------------- INIT ----------------
 state = loadState();
+state.birthdays = state.birthdays || [];
+if (!state.nextBdayId) state.nextBdayId = 1;
 initViewMonth();
 document.getElementById('txDate').value = todayStr();
 document.getElementById('savingDate').value = todayStr();
+document.getElementById('bdaySolarDate').value = todayStr();
 rebuildCategorySelect();
 renderDenomGrid();
 renderThuChi();
 renderTietKiem();
+renderReminderBar();
 
 })();
 </script>
