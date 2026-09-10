@@ -1,14 +1,16 @@
 {
   "name": "so-thu-chi-tiet-kiem",
   "version": "1.0.0",
-  "description": "App Thu Chi & Tiet Kiem - boc bang Capacitor de build iOS",
+  "description": "App Thu Chi & Tiet Kiem - boc bang Capacitor de build iOS va Android",
   "private": true,
   "scripts": {
-    "sync": "npx cap sync ios"
+    "sync:ios": "npx cap sync ios",
+    "sync:android": "npx cap sync android"
   },
   "dependencies": {
     "@capacitor/core": "^6.1.2",
-    "@capacitor/ios": "^6.1.2"
+    "@capacitor/ios": "^6.1.2",
+    "@capacitor/android": "^6.1.2"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2"
