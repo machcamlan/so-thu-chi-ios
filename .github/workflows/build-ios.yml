@@ -20,14 +20,17 @@ jobs:
       - name: Install npm packages
         run: npm install
 
-      - name: Add iOS platform (if not already added)
-        run: |
-          if [ ! -d "ios" ]; then
-            npx cap add ios
-          fi
+      - name: Remove any existing ios folder (ensure clean regenerate)
+        run: rm -rf ios
 
-      - name: Copy web assets into iOS project
-        run: npx cap copy ios
+      - name: Add iOS platform (fresh every run)
+        run: npx cap add ios
+
+      - name: Sync web assets + config into iOS project
+        run: npx cap sync ios
+
+      - name: Show generated App folder (debug info)
+        run: ls -la ios/App/App
 
       - name: Install CocoaPods dependencies
         run: |
