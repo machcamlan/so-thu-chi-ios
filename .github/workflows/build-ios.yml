@@ -1,0 +1,60 @@
+name: Build unsigned iOS app (.ipa)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install npm packages
+        run: npm install
+
+      - name: Add iOS platform (if not already added)
+        run: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
+
+      - name: Copy web assets into iOS project
+        run: npx cap copy ios
+
+      - name: Install CocoaPods dependencies
+        run: |
+          cd ios/App
+          pod install
+
+      - name: Build unsigned .app (no signing, no Apple account needed)
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package into .ipa (Payload/App.app zipped)
+        run: |
+          APP_PATH="build/Build/Products/Release-iphoneos/App.app"
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r SoThuChi.ipa Payload
+
+      - name: Upload .ipa as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoThuChi-ipa
+          path: SoThuChi.ipa
