@@ -5,6 +5,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,8 +44,18 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Upload APK as build artifact
+      - name: Upload APK as build artifact (backup)
         uses: actions/upload-artifact@v4
         with:
           name: SoThuChi-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish APK to GitHub Releases (link tai on dinh, de tim)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-build-${{ github.run_number }}
+          name: "So Thu Chi APK - Ban build #${{ github.run_number }}"
+          body: "APK tu dong build tu code moi nhat. Tai file .apk ben duoi ve dien thoai de cai dat."
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
