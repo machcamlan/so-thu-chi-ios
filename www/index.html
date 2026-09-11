@@ -136,6 +136,8 @@
   }
   .reminder-pill.chay{background:var(--get-bg);color:var(--get);border-color:#bcdcc0;}
   .reminder-pill.bday{background:#fbe6ee;color:#a9436f;border-color:#f3c6d8;}
+  .reminder-pill.health{background:#e9eefb;color:#3b539c;border-color:#c9d4f2;}
+  .reminder-pill.warn{background:var(--owe-bg);color:var(--owe);border-color:#eec6c1;}
 
   .alert-banner{
     background:var(--owe-bg);color:var(--owe);border:1px solid #eec6c1;
@@ -166,6 +168,9 @@
     padding:9px 4px;border-bottom:1px dotted var(--line);font-size:13.5px;
   }
   .bday-item .meta{color:var(--ink-soft);font-size:11.5px;}
+  .time-tag{display:inline-block;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:10.5px;margin-right:3px;}
+  .check-row{display:flex;gap:14px;flex-wrap:wrap;padding:8px 0;}
+  .check-row label{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:var(--ink);}
 </style>
 </head>
 <body>
@@ -181,6 +186,7 @@
     <button class="tab-btn active" data-tab="thuchi" type="button">📒 Thu Chi</button>
     <button class="tab-btn" data-tab="tietkiem" type="button">🐷 Tiết Kiệm</button>
     <button class="tab-btn" data-tab="lich" type="button">🗓️ Lịch &amp; Sinh Nhật</button>
+    <button class="tab-btn" data-tab="suckhoe" type="button">🏥 Sức Khỏe</button>
   </div>
 
   <!-- ===================== TAB THU CHI ===================== -->
@@ -359,6 +365,60 @@
     </div>
   </div>
 
+  <!-- ===================== TAB SỨC KHỎE ===================== -->
+  <div id="tab-suckhoe" class="hidden">
+
+    <div class="card">
+      <h2>CHU KỲ (NGUYỆT SAN)</h2>
+      <div class="form-row">
+        <div><label>Ngày bắt đầu kỳ</label><input type="date" id="periodDate"></div>
+      </div>
+      <button class="btn" id="addPeriodBtn" type="button">+ Đánh dấu ngày này</button>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="l">Chu kỳ trung bình</div><div class="v" id="periodAvg">—</div></div>
+        <div class="stat-box"><div class="l">Dự kiến kỳ tới</div><div class="v" id="periodNext">—</div></div>
+        <div class="stat-box"><div class="l">Còn lại</div><div class="v" id="periodLeft">—</div></div>
+      </div>
+      <div class="tx-list" id="periodList" style="max-height:200px;margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>KHÁM BỆNH &amp; TÁI KHÁM</h2>
+      <div class="form-row">
+        <div><label>Ngày khám</label><input type="date" id="visitDate"></div>
+        <div><label>Ngày tái khám (nếu có)</label><input type="date" id="visitFollowUp"></div>
+      </div>
+      <div class="form-row">
+        <div style="flex:2 1 100%;"><label>Ghi chú (khám gì, bác sĩ nào...)</label><input type="text" id="visitNote" placeholder="Vd: Khám tim mạch - BS Nam"></div>
+      </div>
+      <button class="btn" id="addVisitBtn" type="button">+ Thêm</button>
+      <div class="tx-list" id="visitList" style="max-height:280px;margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>ĐƠN THUỐC &amp; NHẮC UỐNG THUỐC</h2>
+      <div class="form-row">
+        <div><label>Tên thuốc</label><input type="text" id="medName" placeholder="Vd: Amlodipine 5mg"></div>
+        <div><label>Ghi chú/liều dùng</label><input type="text" id="medNote" placeholder="Vd: 1 viên/lần"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Ngày bắt đầu uống</label><input type="date" id="medStart"></div>
+        <div><label>Số ngày dùng thuốc</label><input type="number" id="medDays" min="1" step="1" placeholder="Vd: 7"></div>
+      </div>
+      <label style="display:block;font-size:11.5px;color:var(--ink-soft);font-weight:600;margin-bottom:2px;">Buổi uống</label>
+      <div class="check-row">
+        <label><input type="checkbox" id="medSang"> Sáng</label>
+        <label><input type="checkbox" id="medTrua"> Trưa</label>
+        <label><input type="checkbox" id="medChieu"> Chiều</label>
+        <label><input type="checkbox" id="medToi"> Tối</label>
+      </div>
+      <button class="btn" id="addMedBtn" type="button">+ Thêm đơn thuốc</button>
+      <div class="tx-list" id="medList" style="max-height:320px;margin-top:10px;"></div>
+    </div>
+
+    <p class="foot-note">Lưu ý: đây là nhắc nhở hiển thị khi bạn MỞ app (không phải thông báo đẩy khi khoá màn hình). Nên mở app vào các buổi trong ngày để không bỏ lỡ.</p>
+  </div>
+
   <div class="card">
     <h2>DỮ LIỆU</h2>
     <div class="toolbar">
@@ -416,7 +476,10 @@ function loadState(){
     savings: JSON.parse(JSON.stringify(DEFAULT_SAVINGS)),
     nextTxId: DEFAULT_TRANSACTIONS.length + 1,
     birthdays: [],
-    nextBdayId: 1
+    nextBdayId: 1,
+    periods: [], nextPeriodId: 1,
+    medicalVisits: [], nextVisitId: 1,
+    medications: [], nextMedId: 1
   };
 }
 
@@ -456,6 +519,11 @@ function daysBetween(a,b){
   var db = new Date(b+'T00:00:00');
   return Math.round((db-da)/86400000);
 }
+function addDaysToDate(dateStr, days){
+  var d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+days);
+  return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+}
 function escapeHtml(s){ var d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
 
 // ---------------- TABS ----------------
@@ -467,7 +535,9 @@ document.querySelectorAll('.tab-btn').forEach(function(btn){
     document.getElementById('tab-thuchi').classList.toggle('hidden', tab!=='thuchi');
     document.getElementById('tab-tietkiem').classList.toggle('hidden', tab!=='tietkiem');
     document.getElementById('tab-lich').classList.toggle('hidden', tab!=='lich');
+    document.getElementById('tab-suckhoe').classList.toggle('hidden', tab!=='suckhoe');
     if (tab==='lich') renderLichTab();
+    if (tab==='suckhoe') renderSucKhoeTab();
   });
 });
 
@@ -596,7 +666,202 @@ function renderReminderBar(){
   if (todayBdays.length){
     pills.push('<span class="reminder-pill bday">🎂 Hôm nay là sinh nhật: '+todayBdays.map(function(b){return escapeHtml(b.name);}).join(', ')+'</span>');
   }
+
+  // --- nhắc nguyệt san ---
+  var pInfo = getPeriodPrediction();
+  if (pInfo && pInfo.daysLeft<=1){
+    if (pInfo.daysLeft<0) pills.push('<span class="reminder-pill warn">🌸 Trễ kinh '+(-pInfo.daysLeft)+' ngày</span>');
+    else if (pInfo.daysLeft===0) pills.push('<span class="reminder-pill health">🌸 Dự kiến đến kỳ hôm nay</span>');
+    else pills.push('<span class="reminder-pill health">🌸 Dự kiến đến kỳ vào mai</span>');
+  }
+
+  // --- nhắc tái khám (trong vòng 3 ngày) ---
+  (state.medicalVisits||[]).forEach(function(v){
+    if (!v.followUpDate) return;
+    var dl = daysBetween(todayStr(), v.followUpDate);
+    if (dl>=0 && dl<=3){
+      pills.push('<span class="reminder-pill health">🏥 Tái khám '+(dl===0?'hôm nay':('trong '+dl+' ngày'))+(v.note?(': '+escapeHtml(v.note)):'')+'</span>');
+    }
+  });
+
+  // --- nhắc uống thuốc theo buổi hiện tại + sắp hết thuốc ---
+  var hour = today.getHours();
+  var buoi = hour<11 ? 'sang' : (hour<13 ? 'trua' : (hour<18 ? 'chieu' : 'toi'));
+  var buoiLabel = {sang:'Sáng', trua:'Trưa', chieu:'Chiều', toi:'Tối'}[buoi];
+  var toTake = [];
+  (state.medications||[]).forEach(function(m){
+    var endDate = addDaysToDate(m.startDate, m.days-1);
+    var dl = daysBetween(todayStr(), endDate);
+    var started = daysBetween(m.startDate, todayStr()) >= 0;
+    if (started && dl>=0 && m.times[buoi]) toTake.push(m.name);
+    if (dl>=-3 && dl<=1 && started){
+      if (dl<0) pills.push('<span class="reminder-pill warn">💊 Đã hết thuốc '+escapeHtml(m.name)+' ('+(-dl)+' ngày trước)</span>');
+      else pills.push('<span class="reminder-pill warn">💊 Sắp hết thuốc '+escapeHtml(m.name)+' (còn '+dl+' ngày)</span>');
+    }
+  });
+  if (toTake.length){
+    pills.push('<span class="reminder-pill health">🔔 Buổi '+buoiLabel+': uống '+toTake.map(escapeHtml).join(', ')+'</span>');
+  }
+
   document.getElementById('reminderBar').innerHTML = pills.join('');
+}
+
+// ---------------- SỨC KHỎE: nguyệt san, khám bệnh, đơn thuốc ----------------
+function getPeriodPrediction(){
+  var periods = (state.periods||[]).slice().sort(function(a,b){ return a.date<b.date?-1:1; });
+  if (!periods.length) return null;
+  var last = periods[periods.length-1].date;
+  var avg = 28;
+  if (periods.length>=2){
+    var gaps = [];
+    for (var i=1;i<periods.length;i++) gaps.push(daysBetween(periods[i-1].date, periods[i].date));
+    avg = Math.round(gaps.reduce(function(s,g){return s+g;},0)/gaps.length);
+  }
+  var next = addDaysToDate(last, avg);
+  var daysLeft = daysBetween(todayStr(), next);
+  return { avg:avg, next:next, daysLeft:daysLeft };
+}
+
+document.getElementById('addPeriodBtn').addEventListener('click', function(){
+  var date = document.getElementById('periodDate').value || todayStr();
+  state.periods = state.periods || [];
+  if (state.periods.some(function(p){ return p.date===date; })){ alert('Ngày này đã được đánh dấu rồi.'); return; }
+  state.periods.push({ id:(state.nextPeriodId||1), date:date });
+  state.nextPeriodId = (state.nextPeriodId||1)+1;
+  saveState();
+  renderSucKhoeTab();
+  renderReminderBar();
+});
+
+function removePeriod(id){
+  state.periods = (state.periods||[]).filter(function(p){ return p.id!==id; });
+  saveState(); renderSucKhoeTab(); renderReminderBar();
+}
+
+function renderPeriodSection(){
+  var info = getPeriodPrediction();
+  document.getElementById('periodAvg').textContent = info ? info.avg+' ngày' : '—';
+  document.getElementById('periodNext').textContent = info ? info.next.split('-').reverse().join('/') : '—';
+  document.getElementById('periodLeft').textContent = info ? (info.daysLeft<0 ? ('Trễ '+(-info.daysLeft)+' ngày') : (info.daysLeft+' ngày')) : '—';
+
+  var list = document.getElementById('periodList');
+  list.innerHTML = '';
+  var periods = (state.periods||[]).slice().sort(function(a,b){ return a.date<b.date?1:-1; });
+  if (!periods.length){ list.innerHTML = '<div class="empty-note">Chưa có dữ liệu.</div>'; return; }
+  periods.forEach(function(p){
+    var row = document.createElement('div');
+    row.className = 'tx-item';
+    row.innerHTML = '<div>'+p.date.split('-').reverse().join('/')+'</div>' +
+      '<button class="btn danger" data-rmperiod="'+p.id+'" type="button">✕</button>';
+    list.appendChild(row);
+  });
+  list.querySelectorAll('button[data-rmperiod]').forEach(function(btn){
+    btn.addEventListener('click', function(){ removePeriod(Number(btn.getAttribute('data-rmperiod'))); });
+  });
+}
+
+document.getElementById('addVisitBtn').addEventListener('click', function(){
+  var date = document.getElementById('visitDate').value || todayStr();
+  var followUp = document.getElementById('visitFollowUp').value || null;
+  var note = document.getElementById('visitNote').value.trim();
+  state.medicalVisits = state.medicalVisits || [];
+  state.medicalVisits.push({ id:(state.nextVisitId||1), date:date, note:note, followUpDate:followUp });
+  state.nextVisitId = (state.nextVisitId||1)+1;
+  saveState();
+  document.getElementById('visitNote').value = '';
+  document.getElementById('visitFollowUp').value = '';
+  renderSucKhoeTab();
+  renderReminderBar();
+});
+
+function removeVisit(id){
+  state.medicalVisits = (state.medicalVisits||[]).filter(function(v){ return v.id!==id; });
+  saveState(); renderSucKhoeTab(); renderReminderBar();
+}
+
+function renderVisitSection(){
+  var list = document.getElementById('visitList');
+  list.innerHTML = '';
+  var visits = (state.medicalVisits||[]).slice().sort(function(a,b){ return a.date<b.date?1:-1; });
+  if (!visits.length){ list.innerHTML = '<div class="empty-note">Chưa có lịch khám nào.</div>'; return; }
+  visits.forEach(function(v){
+    var row = document.createElement('div');
+    row.className = 'bday-item';
+    row.innerHTML =
+      '<div><b>'+v.date.split('-').reverse().join('/')+'</b>'+(v.note?(' · '+escapeHtml(v.note)):'')+
+        (v.followUpDate ? ('<div class="meta">Tái khám: '+v.followUpDate.split('-').reverse().join('/')+'</div>') : '') + '</div>' +
+      '<button class="btn danger" data-rmvisit="'+v.id+'" type="button">✕</button>';
+    list.appendChild(row);
+  });
+  list.querySelectorAll('button[data-rmvisit]').forEach(function(btn){
+    btn.addEventListener('click', function(){ removeVisit(Number(btn.getAttribute('data-rmvisit'))); });
+  });
+}
+
+document.getElementById('addMedBtn').addEventListener('click', function(){
+  var name = document.getElementById('medName').value.trim();
+  var note = document.getElementById('medNote').value.trim();
+  var start = document.getElementById('medStart').value || todayStr();
+  var days = parseInt(document.getElementById('medDays').value,10);
+  if (!name){ alert('Vui lòng nhập tên thuốc.'); return; }
+  if (!days || days<1){ alert('Vui lòng nhập số ngày dùng thuốc.'); return; }
+  var times = {
+    sang: document.getElementById('medSang').checked,
+    trua: document.getElementById('medTrua').checked,
+    chieu: document.getElementById('medChieu').checked,
+    toi: document.getElementById('medToi').checked
+  };
+  state.medications = state.medications || [];
+  state.medications.push({ id:(state.nextMedId||1), name:name, note:note, startDate:start, days:days, times:times });
+  state.nextMedId = (state.nextMedId||1)+1;
+  saveState();
+  document.getElementById('medName').value = '';
+  document.getElementById('medNote').value = '';
+  document.getElementById('medDays').value = '';
+  ['medSang','medTrua','medChieu','medToi'].forEach(function(id){ document.getElementById(id).checked=false; });
+  renderSucKhoeTab();
+  renderReminderBar();
+});
+
+function removeMed(id){
+  state.medications = (state.medications||[]).filter(function(m){ return m.id!==id; });
+  saveState(); renderSucKhoeTab(); renderReminderBar();
+}
+
+function renderMedSection(){
+  var list = document.getElementById('medList');
+  list.innerHTML = '';
+  var meds = (state.medications||[]).slice().sort(function(a,b){ return a.startDate<b.startDate?1:-1; });
+  if (!meds.length){ list.innerHTML = '<div class="empty-note">Chưa có đơn thuốc nào.</div>'; return; }
+  var buoiLabels = {sang:'Sáng', trua:'Trưa', chieu:'Chiều', toi:'Tối'};
+  meds.forEach(function(m){
+    var endDate = addDaysToDate(m.startDate, m.days-1);
+    var dl = daysBetween(todayStr(), endDate);
+    var statusText, statusColor;
+    if (dl<0){ statusText = 'Đã hết thuốc ('+(-dl)+' ngày trước)'; statusColor='var(--owe)'; }
+    else if (dl<=1){ statusText = 'Sắp hết, còn '+dl+' ngày'; statusColor='var(--owe)'; }
+    else { statusText = 'Còn '+dl+' ngày thuốc'; statusColor='var(--get)'; }
+    var timeTags = Object.keys(m.times).filter(function(k){return m.times[k];}).map(function(k){
+      return '<span class="time-tag">'+buoiLabels[k]+'</span>';
+    }).join('');
+    var row = document.createElement('div');
+    row.className = 'bday-item';
+    row.innerHTML =
+      '<div><b>'+escapeHtml(m.name)+'</b>'+(m.note?(' · '+escapeHtml(m.note)):'')+
+        '<div class="meta">'+m.startDate.split('-').reverse().join('/')+' → '+endDate.split('-').reverse().join('/')+' · '+timeTags+'</div>' +
+        '<div class="meta" style="color:'+statusColor+';font-weight:700;">'+statusText+'</div></div>' +
+      '<button class="btn danger" data-rmmed="'+m.id+'" type="button">✕</button>';
+    list.appendChild(row);
+  });
+  list.querySelectorAll('button[data-rmmed]').forEach(function(btn){
+    btn.addEventListener('click', function(){ removeMed(Number(btn.getAttribute('data-rmmed'))); });
+  });
+}
+
+function renderSucKhoeTab(){
+  renderPeriodSection();
+  renderVisitSection();
+  renderMedSection();
 }
 
 // ---------------- THU CHI TAB ----------------
@@ -1033,11 +1298,18 @@ document.getElementById('importFile').addEventListener('change', function(e){
       if (!state.nextBdayId){
         state.nextBdayId = state.birthdays.reduce(function(m,b){return Math.max(m,b.id||0);},0)+1;
       }
+      state.periods = state.periods || [];
+      state.medicalVisits = state.medicalVisits || [];
+      state.medications = state.medications || [];
+      state.nextPeriodId = state.nextPeriodId || (state.periods.reduce(function(m,p){return Math.max(m,p.id||0);},0)+1);
+      state.nextVisitId = state.nextVisitId || (state.medicalVisits.reduce(function(m,v){return Math.max(m,v.id||0);},0)+1);
+      state.nextMedId = state.nextMedId || (state.medications.reduce(function(m,x){return Math.max(m,x.id||0);},0)+1);
       saveState();
       initViewMonth();
       renderThuChi();
       renderTietKiem();
       renderLichTab();
+      renderSucKhoeTab();
       renderReminderBar();
       alert('Đã nhập dữ liệu thành công.');
     }catch(err){
@@ -1055,13 +1327,17 @@ document.getElementById('resetBtn').addEventListener('click', function(){
     savings: JSON.parse(JSON.stringify(DEFAULT_SAVINGS)),
     nextTxId: DEFAULT_TRANSACTIONS.length + 1,
     birthdays: [],
-    nextBdayId: 1
+    nextBdayId: 1,
+    periods: [], nextPeriodId: 1,
+    medicalVisits: [], nextVisitId: 1,
+    medications: [], nextMedId: 1
   };
   saveState();
   initViewMonth();
   renderThuChi();
   renderTietKiem();
   renderLichTab();
+  renderSucKhoeTab();
   renderReminderBar();
 });
 
@@ -1083,10 +1359,19 @@ document.getElementById('newUserBtn').addEventListener('click', function(){
 state = loadState();
 state.birthdays = state.birthdays || [];
 if (!state.nextBdayId) state.nextBdayId = 1;
+state.periods = state.periods || [];
+state.medicalVisits = state.medicalVisits || [];
+state.medications = state.medications || [];
+if (!state.nextPeriodId) state.nextPeriodId = 1;
+if (!state.nextVisitId) state.nextVisitId = 1;
+if (!state.nextMedId) state.nextMedId = 1;
 initViewMonth();
 document.getElementById('txDate').value = todayStr();
 document.getElementById('savingDate').value = todayStr();
 document.getElementById('bdaySolarDate').value = todayStr();
+document.getElementById('periodDate').value = todayStr();
+document.getElementById('visitDate').value = todayStr();
+document.getElementById('medStart').value = todayStr();
 rebuildCategorySelect();
 renderDenomGrid();
 renderThuChi();
