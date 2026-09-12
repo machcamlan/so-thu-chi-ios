@@ -44,6 +44,13 @@
   .app-title{text-align:center;color:#f6ecd8;margin-bottom:16px;}
   .app-title h1{margin:0 0 4px;font-size:clamp(22px,4vw,30px);font-weight:700;letter-spacing:.01em;}
   .app-title p{margin:0;color:#cbbfa0;font-size:13.5px;}
+  #userNameInput{
+    background:transparent;border:none;border-bottom:1px dashed #6b6252;
+    color:#f0c987;font-size:14px;text-align:center;font-weight:600;
+    padding:3px 4px;margin:2px 0 4px;width:220px;max-width:80%;font-family:inherit;
+  }
+  #userNameInput:focus{outline:none;border-bottom-color:var(--gold);}
+  #userNameInput::placeholder{color:#8a806b;font-weight:400;}
 
   .tabs{display:flex;gap:8px;margin-bottom:14px;}
   .tab-btn{
@@ -177,7 +184,8 @@
 <div class="wrap">
   <div class="app-title">
     <h1>💰 Sổ Thu Chi &amp; Tiết Kiệm</h1>
-    <p>Quản lý thu chi hằng tháng và theo dõi mục tiêu tiết kiệm</p>
+    <input type="text" id="userNameInput" placeholder="Nhập tên của bạn...">
+    <p id="appSubtitle">Quản lý thu chi hằng tháng và theo dõi mục tiêu tiết kiệm</p>
   </div>
 
   <div class="reminder-bar" id="reminderBar"></div>
@@ -185,7 +193,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="thuchi" type="button">📒 Thu Chi</button>
     <button class="tab-btn" data-tab="tietkiem" type="button">🐷 Tiết Kiệm</button>
-    <button class="tab-btn" data-tab="lich" type="button">🗓️ Lịch &amp; Sinh Nhật</button>
+    <button class="tab-btn" data-tab="lich" type="button">🗓️ Lịch &amp; Sự Kiện</button>
     <button class="tab-btn" data-tab="suckhoe" type="button">🏥 Sức Khỏe</button>
   </div>
 
@@ -213,7 +221,7 @@
       </div>
 
       <div class="highlight-row highlight-salary">
-        <span>Lương cuối tháng<br><small style="font-weight:400;opacity:.85">Tổng thu − (Hụi + Năng lượng + Chợ)</small></span>
+        <span>Lương cuối tháng<br><small style="font-weight:400;opacity:.85">Tổng thu − (Hụi + Tiền điện + Chợ)</small></span>
         <b id="salaryEndMonth">0 đ</b>
       </div>
       <div class="highlight-row highlight-balance">
@@ -248,6 +256,19 @@
         </div>
       </div>
       <div class="form-row">
+        <div style="flex:1 1 160px;">
+          <label>Chọn nhanh ghi chú</label>
+          <select id="txNotePreset">
+            <option value="">-- Chọn nhanh --</option>
+            <option>Chợ hàng ngày</option>
+            <option>Thu ngày</option>
+            <option>Tiền hụi</option>
+            <option>Tiền điện</option>
+            <option>Chi khác</option>
+            <option>Đi chơi</option>
+            <option>Refresh</option>
+          </select>
+        </div>
         <div style="flex:2 1 100%;">
           <label>Ghi chú</label>
           <input type="text" id="txNote" placeholder="Ví dụ: Chợ hằng ngày...">
@@ -335,12 +356,23 @@
     </div>
 
     <div class="card">
-      <h2>+ THÊM NGƯỜI THÂN</h2>
+      <h2>+ THÊM SỰ KIỆN</h2>
       <div class="form-row">
         <div style="flex:2 1 160px;">
           <label>Tên</label>
-          <input type="text" id="bdayName" placeholder="Vd: Mẹ, Bố, Anh Hai...">
+          <input type="text" id="bdayName" placeholder="Vd: Mẹ, Bố, Kỷ niệm cưới...">
         </div>
+        <div>
+          <label>Loại sự kiện</label>
+          <select id="bdayEventType">
+            <option value="birthday">🎂 Sinh nhật</option>
+            <option value="anniversary">🎉 Kỷ niệm</option>
+            <option value="memorial">🕯️ Ngày giỗ</option>
+            <option value="other">📌 Sự kiện khác</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
         <div>
           <label>Loại lịch</label>
           <div class="seg" id="bdayTypeSeg">
@@ -350,7 +382,7 @@
         </div>
       </div>
       <div class="form-row" id="bdaySolarRow">
-        <div><label>Ngày sinh (dương lịch)</label><input type="date" id="bdaySolarDate"></div>
+        <div><label>Ngày (dương lịch)</label><input type="date" id="bdaySolarDate"></div>
       </div>
       <div class="form-row hidden" id="bdayLunarRow">
         <div><label>Ngày (âm lịch)</label><input type="number" id="bdayLunarDay" min="1" max="30" placeholder="1-30"></div>
@@ -360,7 +392,7 @@
     </div>
 
     <div class="card">
-      <h2>NGƯỜI THÂN &amp; SINH NHẬT SẮP TỚI</h2>
+      <h2>SỰ KIỆN SẮP TỚI</h2>
       <div class="tx-list" id="bdayList"></div>
     </div>
   </div>
@@ -448,7 +480,7 @@ var THU_CATS = [
   {key:'vay', label:'Vay mượn'}
 ];
 var CHI_CATS = [
-  {key:'nangluong', label:'Năng lượng'},
+  {key:'nangluong', label:'Tiền điện'},
   {key:'chikhac', label:'Chi khác'},
   {key:'hui', label:'Hụi'},
   {key:'tietkiem', label:'Tiết kiệm'},
@@ -479,7 +511,8 @@ function loadState(){
     nextBdayId: 1,
     periods: [], nextPeriodId: 1,
     medicalVisits: [], nextVisitId: 1,
-    medications: [], nextMedId: 1
+    medications: [], nextMedId: 1,
+    userName: ''
   };
 }
 
@@ -663,9 +696,10 @@ function renderReminderBar(){
   if (chay) pills.push('<span class="reminder-pill chay">🌿 Hôm nay là ngày ăn chay</span>');
 
   var todayBdays = (state.birthdays||[]).filter(function(b){ return nextBirthdayOccurrence(b).daysLeft===0; });
-  if (todayBdays.length){
-    pills.push('<span class="reminder-pill bday">🎂 Hôm nay là sinh nhật: '+todayBdays.map(function(b){return escapeHtml(b.name);}).join(', ')+'</span>');
-  }
+  todayBdays.forEach(function(b){
+    var meta = EVENT_TYPE_META[b.eventType] || EVENT_TYPE_META.birthday;
+    pills.push('<span class="reminder-pill bday">'+meta.icon+' Hôm nay là '+meta.label.toLowerCase()+': '+escapeHtml(b.name)+'</span>');
+  });
 
   // --- nhắc nguyệt san ---
   var pInfo = getPeriodPrediction();
@@ -913,6 +947,10 @@ document.querySelectorAll('#typeSeg button').forEach(function(btn){
   });
 });
 
+document.getElementById('txNotePreset').addEventListener('change', function(){
+  if (this.value) document.getElementById('txNote').value = this.value;
+});
+
 document.getElementById('addTxBtn').addEventListener('click', function(){
   var date = document.getElementById('txDate').value || todayStr();
   var category = document.getElementById('txCategory').value;
@@ -925,6 +963,7 @@ document.getElementById('addTxBtn').addEventListener('click', function(){
   saveState();
   document.getElementById('txAmount').value = '';
   document.getElementById('txNote').value = '';
+  document.getElementById('txNotePreset').value = '';
   viewYM = date.slice(0,7);
   renderThuChi();
 });
@@ -1162,13 +1201,21 @@ document.querySelectorAll('#bdayTypeSeg button').forEach(function(btn){
   });
 });
 
+var EVENT_TYPE_META = {
+  birthday: { icon:'🎂', label:'Sinh nhật' },
+  anniversary: { icon:'🎉', label:'Kỷ niệm' },
+  memorial: { icon:'🕯️', label:'Ngày giỗ' },
+  other: { icon:'📌', label:'Sự kiện' }
+};
+
 document.getElementById('addBdayBtn').addEventListener('click', function(){
   var name = document.getElementById('bdayName').value.trim();
   if (!name){ alert('Vui lòng nhập tên.'); return; }
-  var b = { id: (state.nextBdayId||1), name:name, type:bdayTypeSel };
+  var eventType = document.getElementById('bdayEventType').value;
+  var b = { id: (state.nextBdayId||1), name:name, type:bdayTypeSel, eventType:eventType };
   if (bdayTypeSel==='solar'){
     var sd = document.getElementById('bdaySolarDate').value;
-    if (!sd){ alert('Vui lòng chọn ngày sinh.'); return; }
+    if (!sd){ alert('Vui lòng chọn ngày.'); return; }
     var parts = sd.split('-').map(Number);
     b.month = parts[1]; b.day = parts[2];
   } else {
@@ -1249,13 +1296,14 @@ function renderBdayList(){
 
   withNext.forEach(function(item){
     var b = item.b;
+    var meta = EVENT_TYPE_META[b.eventType] || EVENT_TYPE_META.birthday;
     var dateLabel = item.date ? pad2(item.date.getDate())+'/'+pad2(item.date.getMonth()+1) : '?';
-    var typeLabel = b.type==='solar' ? 'Dương lịch '+pad2(b.day)+'/'+pad2(b.month) : 'Âm lịch '+b.day+'/'+b.month;
+    var typeLabel = meta.label+' · '+(b.type==='solar' ? 'Dương lịch '+pad2(b.day)+'/'+pad2(b.month) : 'Âm lịch '+b.day+'/'+b.month);
     var daysText = item.daysLeft===0 ? 'Hôm nay!' : ('Còn '+item.daysLeft+' ngày · '+dateLabel);
     var row = document.createElement('div');
     row.className = 'bday-item';
     row.innerHTML =
-      '<div><b>'+escapeHtml(b.name)+'</b><div class="meta">'+typeLabel+'</div></div>' +
+      '<div><b>'+meta.icon+' '+escapeHtml(b.name)+'</b><div class="meta">'+typeLabel+'</div></div>' +
       '<div style="display:flex;align-items:center;gap:8px;">' +
         '<span style="font-weight:700;'+(item.daysLeft===0?'color:var(--brand);':'')+'">'+daysText+'</span>' +
         '<button class="btn danger" data-rmbday="'+b.id+'" type="button">✕</button>' +
@@ -1322,6 +1370,7 @@ document.getElementById('importFile').addEventListener('change', function(e){
 
 document.getElementById('resetBtn').addEventListener('click', function(){
   if (!confirm('Xoá toàn bộ dữ liệu hiện tại và quay về dữ liệu ví dụ ban đầu?')) return;
+  var keepName = state.userName || '';
   state = {
     transactions: JSON.parse(JSON.stringify(DEFAULT_TRANSACTIONS)),
     savings: JSON.parse(JSON.stringify(DEFAULT_SAVINGS)),
@@ -1330,9 +1379,11 @@ document.getElementById('resetBtn').addEventListener('click', function(){
     nextBdayId: 1,
     periods: [], nextPeriodId: 1,
     medicalVisits: [], nextVisitId: 1,
-    medications: [], nextMedId: 1
+    medications: [], nextMedId: 1,
+    userName: keepName
   };
   saveState();
+  applyUserName();
   initViewMonth();
   renderThuChi();
   renderTietKiem();
@@ -1365,6 +1416,21 @@ state.medications = state.medications || [];
 if (!state.nextPeriodId) state.nextPeriodId = 1;
 if (!state.nextVisitId) state.nextVisitId = 1;
 if (!state.nextMedId) state.nextMedId = 1;
+
+function applyUserName(){
+  var name = (state.userName||'').trim();
+  document.getElementById('userNameInput').value = name;
+  document.getElementById('appSubtitle').textContent = name
+    ? 'Sổ tay tài chính của ' + name
+    : 'Quản lý thu chi hằng tháng và theo dõi mục tiêu tiết kiệm';
+}
+document.getElementById('userNameInput').addEventListener('change', function(){
+  state.userName = this.value.trim();
+  saveState();
+  applyUserName();
+});
+applyUserName();
+
 initViewMonth();
 document.getElementById('txDate').value = todayStr();
 document.getElementById('savingDate').value = todayStr();
