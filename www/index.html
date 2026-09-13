@@ -94,11 +94,11 @@
   .highlight-balance{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);}
 
   .form-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
-  .form-row > div{flex:1;min-width:120px;}
+  .form-row > div{flex:1 1 120px;min-width:0;}
   .form-row label{display:block;font-size:11.5px;color:var(--ink-soft);margin-bottom:3px;font-weight:600;}
-  input[type=text], input[type=number], input[type=date], select, textarea{
-    width:100%;padding:8px 9px;border:1px solid #d9cdb0;border-radius:7px;
-    background:#fffefb;font-size:14px;color:var(--ink);font-family:inherit;
+  input[type=text], input[type=number], input[type=date], input[type=time], select, textarea{
+    width:100%;min-width:0;max-width:100%;padding:8px 9px;border:1px solid #d9cdb0;border-radius:7px;
+    background:#fffefb;font-size:14px;color:var(--ink);font-family:inherit;box-sizing:border-box;
   }
   input:focus, select:focus{outline:none;border-color:var(--brand);}
   .seg{display:flex;border:1px solid #d9cdb0;border-radius:7px;overflow:hidden;}
@@ -175,6 +175,14 @@
     padding:9px 4px;border-bottom:1px dotted var(--line);font-size:13.5px;
   }
   .bday-item .meta{color:var(--ink-soft);font-size:11.5px;}
+
+  .tkb-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:8px;table-layout:fixed;}
+  .tkb-table th, .tkb-table td{border:1px solid var(--line);padding:6px 3px;text-align:center;vertical-align:middle;word-break:break-word;}
+  .tkb-table th{background:var(--panel-2);color:var(--brand-dark);font-size:10.5px;}
+  .tkb-table td.period-cell{background:var(--panel-2);font-weight:700;color:var(--brand-dark);width:34px;}
+  .tkb-table td.filled{background:#eef7ee;cursor:pointer;color:var(--ink);}
+  .tkb-table td.filled:active{background:#dcefdd;}
+  .tkb-buoi-label{font-size:11px;font-weight:700;color:var(--brand-dark);margin:10px 0 2px;}
   .time-tag{display:inline-block;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:10.5px;margin-right:3px;}
   .check-row{display:flex;gap:14px;flex-wrap:wrap;padding:8px 0;}
   .check-row label{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:var(--ink);}
@@ -195,6 +203,7 @@
     <button class="tab-btn" data-tab="tietkiem" type="button">🐷 Tiết Kiệm</button>
     <button class="tab-btn" data-tab="lich" type="button">🗓️ Lịch &amp; Sự Kiện</button>
     <button class="tab-btn" data-tab="suckhoe" type="button">🏥 Sức Khỏe</button>
+    <button class="tab-btn" data-tab="tkb" type="button">📚 Thời Khóa Biểu</button>
   </div>
 
   <!-- ===================== TAB THU CHI ===================== -->
@@ -267,6 +276,9 @@
             <option>Chi khác</option>
             <option>Đi chơi</option>
             <option>Refresh</option>
+            <option>Tiết kiệm</option>
+            <option>Đi du lịch</option>
+            <option>Xem phim</option>
           </select>
         </div>
         <div style="flex:2 1 100%;">
@@ -451,6 +463,64 @@
     <p class="foot-note">Lưu ý: đây là nhắc nhở hiển thị khi bạn MỞ app (không phải thông báo đẩy khi khoá màn hình). Nên mở app vào các buổi trong ngày để không bỏ lỡ.</p>
   </div>
 
+  <!-- ===================== TAB THỜI KHÓA BIỂU ===================== -->
+  <div id="tab-tkb" class="hidden">
+    <div class="card">
+      <h2>+ THÊM LỊCH HỌC / ĐƯA ĐÓN</h2>
+      <div class="form-row">
+        <div><label>Thành viên</label><input type="text" id="tkbMember" placeholder="Vd: Bé Na, Bé Bo..."></div>
+        <div>
+          <label>Loại</label>
+          <select id="tkbType">
+            <option value="chinh">📖 Học chính khóa</option>
+            <option value="them">✏️ Học thêm</option>
+            <option value="don">🚗 Đưa đón</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div style="flex:2 1 160px;"><label>Môn học / Nội dung</label><input type="text" id="tkbSubject" placeholder="Vd: Toán, Anh văn, Đón bé về..."></div>
+        <div>
+          <label>Thứ</label>
+          <select id="tkbDow">
+            <option value="1">Thứ 2</option>
+            <option value="2">Thứ 3</option>
+            <option value="3">Thứ 4</option>
+            <option value="4">Thứ 5</option>
+            <option value="5">Thứ 6</option>
+            <option value="6">Thứ 7</option>
+            <option value="0">Chủ nhật</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" id="tkbChinhRow">
+        <div>
+          <label>Buổi</label>
+          <select id="tkbBuoi"><option value="sang">Sáng</option><option value="chieu">Chiều</option></select>
+        </div>
+        <div><label>Tiết số</label><input type="number" id="tkbPeriod" min="1" max="10" placeholder="Vd: 1"></div>
+      </div>
+      <div class="form-row hidden" id="tkbTimeRow">
+        <div><label>Giờ bắt đầu</label><input type="time" id="tkbStart"></div>
+        <div><label>Giờ kết thúc (nếu có)</label><input type="time" id="tkbEnd"></div>
+      </div>
+      <button class="btn" id="addTkbBtn" type="button">+ Thêm</button>
+    </div>
+
+    <div class="card">
+      <h2>THỜI KHÓA BIỂU CHÍNH KHÓA</h2>
+      <div class="form-row">
+        <div><label>Xem lịch của</label><select id="tkbMemberFilter"></select></div>
+      </div>
+      <div id="tkbGridWrap"></div>
+    </div>
+
+    <div class="card">
+      <h2>HỌC THÊM &amp; ĐƯA ĐÓN</h2>
+      <div class="tx-list" id="tkbList"></div>
+    </div>
+  </div>
+
   <div class="card">
     <h2>DỮ LIỆU</h2>
     <div class="toolbar">
@@ -463,6 +533,7 @@
       <button class="btn secondary" id="newUserBtn" type="button" style="color:var(--owe);">🆕 Xoá dữ liệu cũ (Người dùng mới)</button>
     </div>
     <p class="foot-note">Dữ liệu được lưu tự động trên chính máy/trình duyệt này (localStorage). Dùng "Xuất dữ liệu" để sao lưu hoặc chuyển sang thiết bị khác.</p>
+    <p class="foot-note">Sổ Thu Chi &amp; Tiết Kiệm — Phiên bản 1.4</p>
   </div>
 </div>
 
@@ -512,6 +583,7 @@ function loadState(){
     periods: [], nextPeriodId: 1,
     medicalVisits: [], nextVisitId: 1,
     medications: [], nextMedId: 1,
+    schedules: [], nextTkbId: 1,
     userName: ''
   };
 }
@@ -569,8 +641,10 @@ document.querySelectorAll('.tab-btn').forEach(function(btn){
     document.getElementById('tab-tietkiem').classList.toggle('hidden', tab!=='tietkiem');
     document.getElementById('tab-lich').classList.toggle('hidden', tab!=='lich');
     document.getElementById('tab-suckhoe').classList.toggle('hidden', tab!=='suckhoe');
+    document.getElementById('tab-tkb').classList.toggle('hidden', tab!=='tkb');
     if (tab==='lich') renderLichTab();
     if (tab==='suckhoe') renderSucKhoeTab();
+    if (tab==='tkb') renderTkbTab();
   });
 });
 
@@ -737,6 +811,16 @@ function renderReminderBar(){
     pills.push('<span class="reminder-pill health">🔔 Buổi '+buoiLabel+': uống '+toTake.map(escapeHtml).join(', ')+'</span>');
   }
 
+  // --- nhắc lịch học thêm / đưa đón hôm nay (lịch chính khóa xem trong bảng TKB) ---
+  var todayDow = today.getDay();
+  (state.schedules||[]).filter(function(s){ return s.dow===todayDow && s.type!=='chinh'; })
+    .sort(function(a,b){ return a.start<b.start?-1:1; })
+    .forEach(function(s){
+      var meta = TKB_TYPE_META[s.type] || TKB_TYPE_META.them;
+      pills.push('<span class="reminder-pill health">'+meta.icon+' '+s.start+' '+escapeHtml(s.member)+
+        (s.subject?(' - '+escapeHtml(s.subject)):'')+'</span>');
+    });
+
   document.getElementById('reminderBar').innerHTML = pills.join('');
 }
 
@@ -896,6 +980,147 @@ function renderSucKhoeTab(){
   renderPeriodSection();
   renderVisitSection();
   renderMedSection();
+}
+
+// ---------------- THỜI KHÓA BIỂU ----------------
+var DOW_FULL = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
+var DOW_SHORT_ORDER = [1,2,3,4,5,6,0]; // T2..T7, CN cuối cùng
+var DOW_SHORT_LABEL = {1:'Thứ 2',2:'Thứ 3',3:'Thứ 4',4:'Thứ 5',5:'Thứ 6',6:'Thứ 7',0:'Chủ nhật'};
+var TKB_TYPE_META = {
+  chinh: { icon:'📖', label:'Học chính khóa' },
+  them: { icon:'✏️', label:'Học thêm' },
+  don: { icon:'🚗', label:'Đưa đón' }
+};
+
+document.getElementById('tkbType').addEventListener('change', function(){
+  var isChinh = this.value === 'chinh';
+  document.getElementById('tkbChinhRow').classList.toggle('hidden', !isChinh);
+  document.getElementById('tkbTimeRow').classList.toggle('hidden', isChinh);
+});
+
+document.getElementById('addTkbBtn').addEventListener('click', function(){
+  var member = document.getElementById('tkbMember').value.trim();
+  var subject = document.getElementById('tkbSubject').value.trim();
+  var type = document.getElementById('tkbType').value;
+  if (!member){ alert('Vui lòng nhập tên thành viên.'); return; }
+  var item = {
+    id: (state.nextTkbId||1),
+    member: member,
+    type: type,
+    subject: subject,
+    dow: parseInt(document.getElementById('tkbDow').value,10)
+  };
+  if (type === 'chinh'){
+    var period = parseInt(document.getElementById('tkbPeriod').value,10);
+    if (!period){ alert('Vui lòng nhập tiết số.'); return; }
+    item.buoi = document.getElementById('tkbBuoi').value;
+    item.period = period;
+  } else {
+    var start = document.getElementById('tkbStart').value;
+    if (!start){ alert('Vui lòng chọn giờ bắt đầu.'); return; }
+    item.start = start;
+    item.end = document.getElementById('tkbEnd').value || '';
+  }
+  state.nextTkbId = item.id + 1;
+  state.schedules = state.schedules || [];
+  state.schedules.push(item);
+  saveState();
+  document.getElementById('tkbSubject').value = '';
+  document.getElementById('tkbPeriod').value = '';
+  document.getElementById('tkbStart').value = '';
+  document.getElementById('tkbEnd').value = '';
+  renderTkbTab();
+  renderReminderBar();
+});
+
+function removeTkb(id){
+  if (!confirm('Xoá mục lịch học này?')) return;
+  state.schedules = (state.schedules||[]).filter(function(s){ return s.id!==id; });
+  saveState(); renderTkbTab(); renderReminderBar();
+}
+
+function buildTkbGrid(buoi, member){
+  var items = (state.schedules||[]).filter(function(s){
+    return s.type==='chinh' && s.buoi===buoi && s.member===member;
+  });
+  if (!items.length) return '<p class="empty-note">Chưa có tiết học buổi '+(buoi==='sang'?'sáng':'chiều')+'.</p>';
+
+  var periods = [];
+  items.forEach(function(s){ if (periods.indexOf(s.period)===-1) periods.push(s.period); });
+  periods.sort(function(a,b){ return a-b; });
+
+  var html = '<table class="tkb-table"><thead><tr><th>Tiết</th>';
+  DOW_SHORT_ORDER.forEach(function(d){ html += '<th>'+DOW_SHORT_LABEL[d]+'</th>'; });
+  html += '</tr></thead><tbody>';
+  periods.forEach(function(p){
+    html += '<tr><td class="period-cell">'+p+'</td>';
+    DOW_SHORT_ORDER.forEach(function(d){
+      var entry = items.find(function(s){ return s.period===p && s.dow===d; });
+      if (entry){
+        html += '<td class="filled" data-rmtkb="'+entry.id+'" title="Bấm để xoá">'+escapeHtml(entry.subject||'')+'</td>';
+      } else {
+        html += '<td></td>';
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderTkbGrids(){
+  var filterSel = document.getElementById('tkbMemberFilter');
+  var members = [];
+  (state.schedules||[]).forEach(function(s){ if (members.indexOf(s.member)===-1) members.push(s.member); });
+
+  var wrap = document.getElementById('tkbGridWrap');
+  if (!members.length){
+    filterSel.innerHTML = '<option value="">-- Chưa có thành viên --</option>';
+    wrap.innerHTML = '<p class="empty-note">Chưa có lịch học chính khóa nào. Thêm ở trên để xem bảng.</p>';
+    return;
+  }
+  var current = filterSel.value && members.indexOf(filterSel.value)!==-1 ? filterSel.value : members[0];
+  filterSel.innerHTML = members.map(function(m){
+    return '<option value="'+escapeHtml(m)+'"'+(m===current?' selected':'')+'>'+escapeHtml(m)+'</option>';
+  }).join('');
+
+  wrap.innerHTML =
+    '<div class="tkb-buoi-label">Buổi sáng</div>' + buildTkbGrid('sang', current) +
+    '<div class="tkb-buoi-label">Buổi chiều</div>' + buildTkbGrid('chieu', current);
+
+  wrap.querySelectorAll('td[data-rmtkb]').forEach(function(td){
+    td.addEventListener('click', function(){ removeTkb(Number(td.getAttribute('data-rmtkb'))); });
+  });
+}
+
+document.getElementById('tkbMemberFilter').addEventListener('change', renderTkbGrids);
+
+function renderTkbList(){
+  var list = document.getElementById('tkbList');
+  list.innerHTML = '';
+  var items = (state.schedules||[]).filter(function(s){ return s.type!=='chinh'; }).sort(function(a,b){
+    if (a.dow!==b.dow) return a.dow-b.dow;
+    return a.start<b.start ? -1 : 1;
+  });
+  if (!items.length){ list.innerHTML = '<div class="empty-note">Chưa có lịch học thêm/đưa đón nào.</div>'; return; }
+  items.forEach(function(s){
+    var meta = TKB_TYPE_META[s.type] || TKB_TYPE_META.them;
+    var row = document.createElement('div');
+    row.className = 'bday-item';
+    row.innerHTML =
+      '<div><b>'+meta.icon+' '+escapeHtml(s.member)+'</b>'+(s.subject?(' · '+escapeHtml(s.subject)):'')+
+        '<div class="meta">'+DOW_FULL[s.dow]+' · '+s.start+(s.end?('–'+s.end):'')+' · '+meta.label+'</div></div>' +
+      '<button class="btn danger" data-rmtkb="'+s.id+'" type="button">✕</button>';
+    list.appendChild(row);
+  });
+  list.querySelectorAll('button[data-rmtkb]').forEach(function(btn){
+    btn.addEventListener('click', function(){ removeTkb(Number(btn.getAttribute('data-rmtkb'))); });
+  });
+}
+
+function renderTkbTab(){
+  renderTkbGrids();
+  renderTkbList();
 }
 
 // ---------------- THU CHI TAB ----------------
@@ -1352,12 +1577,15 @@ document.getElementById('importFile').addEventListener('change', function(e){
       state.nextPeriodId = state.nextPeriodId || (state.periods.reduce(function(m,p){return Math.max(m,p.id||0);},0)+1);
       state.nextVisitId = state.nextVisitId || (state.medicalVisits.reduce(function(m,v){return Math.max(m,v.id||0);},0)+1);
       state.nextMedId = state.nextMedId || (state.medications.reduce(function(m,x){return Math.max(m,x.id||0);},0)+1);
+      state.schedules = state.schedules || [];
+      state.nextTkbId = state.nextTkbId || (state.schedules.reduce(function(m,x){return Math.max(m,x.id||0);},0)+1);
       saveState();
       initViewMonth();
       renderThuChi();
       renderTietKiem();
       renderLichTab();
       renderSucKhoeTab();
+      renderTkbTab();
       renderReminderBar();
       alert('Đã nhập dữ liệu thành công.');
     }catch(err){
@@ -1380,6 +1608,7 @@ document.getElementById('resetBtn').addEventListener('click', function(){
     periods: [], nextPeriodId: 1,
     medicalVisits: [], nextVisitId: 1,
     medications: [], nextMedId: 1,
+    schedules: [], nextTkbId: 1,
     userName: keepName
   };
   saveState();
@@ -1389,6 +1618,7 @@ document.getElementById('resetBtn').addEventListener('click', function(){
   renderTietKiem();
   renderLichTab();
   renderSucKhoeTab();
+  renderTkbTab();
   renderReminderBar();
 });
 
@@ -1416,6 +1646,8 @@ state.medications = state.medications || [];
 if (!state.nextPeriodId) state.nextPeriodId = 1;
 if (!state.nextVisitId) state.nextVisitId = 1;
 if (!state.nextMedId) state.nextMedId = 1;
+state.schedules = state.schedules || [];
+if (!state.nextTkbId) state.nextTkbId = 1;
 
 function applyUserName(){
   var name = (state.userName||'').trim();
